@@ -1,9 +1,6 @@
 import pygame
 import sys
 
-# Initialize Pygame
-pygame.init()
-
 # Window dimensions
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
@@ -12,63 +9,95 @@ WINDOW_HEIGHT = 600
 WHITE = (255, 255, 255)
 GREEN = (34, 139, 34)
 
-# Create the game window
-screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-pygame.display.set_caption("The Busy Baby Butterfly")
-
-# Clock for controlling frame rate
-clock = pygame.time.Clock()
+# Game settings
 FPS = 60
+CATERPILLAR_SPEED = 5
+CATERPILLAR_SIZE = (60, 60)
 
-# Load caterpillar image
-try:
-    caterpillar_image = pygame.image.load("images/caterpillar/caterpillar1.png")
-    # Scale image if needed (adjust size as you prefer)
-    caterpillar_image = pygame.transform.scale(caterpillar_image, (60, 60))
-except pygame.error as e:
-    print(f"Error loading caterpillar image: {e}")
-    sys.exit()
 
-# Caterpillar position and movement speed
-caterpillar_x = WINDOW_WIDTH // 2
-caterpillar_y = WINDOW_HEIGHT // 2
-caterpillar_speed = 5
+def initialize_game():
+    """Initialize Pygame and create the game window."""
+    pygame.init()
+    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    pygame.display.set_caption("The Busy Baby Butterfly")
+    clock = pygame.time.Clock()
+    return screen, clock
 
-# Game loop
-running = True
-while running:
-    # Handle events
+
+def load_caterpillar_image():
+    """Load and scale the caterpillar image."""
+    try:
+        image = pygame.image.load("images/caterpillar/caterpillar1.png")
+        image = pygame.transform.scale(image, CATERPILLAR_SIZE)
+        return image
+    except pygame.error as e:
+        print(f"Error loading caterpillar image: {e}")
+        sys.exit()
+
+
+def handle_events():
+    """Handle Pygame events. Returns False if game should quit."""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            return False
+    return True
 
-    # Get key states for movement
+
+def handle_movement(x, y, image_width, image_height):
+    """Handle caterpillar movement based on key presses."""
     keys = pygame.key.get_pressed()
+
     if keys[pygame.K_LEFT]:
-        caterpillar_x -= caterpillar_speed
+        x -= CATERPILLAR_SPEED
     if keys[pygame.K_RIGHT]:
-        caterpillar_x += caterpillar_speed
+        x += CATERPILLAR_SPEED
     if keys[pygame.K_UP]:
-        caterpillar_y -= caterpillar_speed
+        y -= CATERPILLAR_SPEED
     if keys[pygame.K_DOWN]:
-        caterpillar_y += caterpillar_speed
+        y += CATERPILLAR_SPEED
 
     # Keep caterpillar within screen bounds
-    caterpillar_x = max(0, min(caterpillar_x, WINDOW_WIDTH - caterpillar_image.get_width()))
-    caterpillar_y = max(0, min(caterpillar_y, WINDOW_HEIGHT - caterpillar_image.get_height()))
+    x = max(0, min(x, WINDOW_WIDTH - image_width))
+    y = max(0, min(y, WINDOW_HEIGHT - image_height))
 
-    # Fill the screen with a color
+    return x, y
+
+
+def draw_screen(screen, caterpillar_image, x, y):
+    """Draw all game elements to the screen."""
     screen.fill(GREEN)
-
-    # Draw the caterpillar
-    screen.blit(caterpillar_image, (caterpillar_x, caterpillar_y))
-
-    # Update the display
+    screen.blit(caterpillar_image, (x, y))
     pygame.display.flip()
 
-    # Control frame rate
-    clock.tick(FPS)
 
-# Quit the game
-pygame.quit()
-sys.exit()
+def main():
+    """Main game loop."""
+    screen, clock = initialize_game()
+    caterpillar_image = load_caterpillar_image()
+
+    # Caterpillar starting position
+    caterpillar_x = WINDOW_WIDTH // 2
+    caterpillar_y = WINDOW_HEIGHT // 2
+
+    # Game loop
+    running = True
+    while running:
+        running = handle_events()
+
+        caterpillar_x, caterpillar_y = handle_movement(
+            caterpillar_x,
+            caterpillar_y,
+            caterpillar_image.get_width(),
+            caterpillar_image.get_height()
+        )
+
+        draw_screen(screen, caterpillar_image, caterpillar_x, caterpillar_y)
+
+        clock.tick(FPS)
+
+    pygame.quit()
+    sys.exit()
+
+
+if __name__ == "__main__":
+    main()
