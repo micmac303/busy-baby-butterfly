@@ -1,6 +1,6 @@
 import pygame
 import sys
-import random
+from model import Caterpillar, spawn_food, check_collisions
 
 # Window dimensions
 WINDOW_WIDTH = 800
@@ -15,8 +15,6 @@ LIGHT_YELLOW = (255, 255, 200)
 # Game settings
 FPS = 60
 CATERPILLAR_SPEED = 5
-CATERPILLAR_SIZE = (60, 60)
-FOOD_SIZE = (40, 40)
 
 
 def initialize_game():
@@ -26,85 +24,6 @@ def initialize_game():
     pygame.display.set_caption("The Busy Baby Butterfly")
     clock = pygame.time.Clock()
     return screen, clock
-
-
-class Caterpillar:
-    """Represents the player's caterpillar."""
-
-    def __init__(self, x, y):
-        """Initialize the caterpillar at the given position."""
-        self.x = x
-        self.y = y
-        self.speed = CATERPILLAR_SPEED
-        self.image = self.load_image()
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
-
-    def load_image(self):
-        """Load and scale the caterpillar image."""
-        try:
-            image = pygame.image.load("images/caterpillar/caterpillar1.png")
-            image = pygame.transform.scale(image, CATERPILLAR_SIZE)
-            return image
-        except pygame.error as e:
-            print(f"Error loading caterpillar image: {e}")
-            sys.exit()
-
-    def handle_movement(self):
-        """Update position based on key presses."""
-        keys = pygame.key.get_pressed()
-
-        if keys[pygame.K_LEFT]:
-            self.x -= self.speed
-        if keys[pygame.K_RIGHT]:
-            self.x += self.speed
-        if keys[pygame.K_UP]:
-            self.y -= self.speed
-        if keys[pygame.K_DOWN]:
-            self.y += self.speed
-
-        # Keep caterpillar within screen bounds
-        self.x = max(0, min(self.x, WINDOW_WIDTH - self.width))
-        self.y = max(0, min(self.y, WINDOW_HEIGHT - self.height))
-
-    def draw(self, screen):
-        """Draw the caterpillar on the screen."""
-        screen.blit(self.image, (self.x, self.y))
-
-    def get_rect(self):
-        """Return the caterpillar's collision rectangle."""
-        return pygame.Rect(self.x, self.y, self.width, self.height)
-
-
-class Food:
-    """Represents a food item for the caterpillar to eat."""
-
-    def __init__(self, x, y, food_type="leaf"):
-        """Initialize food at the given position."""
-        self.x = x
-        self.y = y
-        self.food_type = food_type
-        self.image = self.load_image()
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
-
-    def load_image(self):
-        """Load and scale the food image."""
-        try:
-            image = pygame.image.load(f"images/food/{self.food_type}.png")
-            image = pygame.transform.scale(image, FOOD_SIZE)
-            return image
-        except pygame.error as e:
-            print(f"Error loading food image: {e}")
-            sys.exit()
-
-    def draw(self, screen):
-        """Draw the food on the screen."""
-        screen.blit(self.image, (self.x, self.y))
-
-    def get_rect(self):
-        """Return the food's collision rectangle."""
-        return pygame.Rect(self.x, self.y, self.width, self.height)
 
 
 def handle_events():
@@ -148,28 +67,6 @@ def draw_screen(screen, caterpillar, food_items):
 
     caterpillar.draw(screen)
     pygame.display.flip()
-
-
-def spawn_food(num_items=5):
-    """Spawn food items at random positions."""
-    food_items = []
-    for _ in range(num_items):
-        x = random.randint(0, WINDOW_WIDTH - FOOD_SIZE[0])
-        y = random.randint(0, WINDOW_HEIGHT - FOOD_SIZE[1])
-        food_items.append(Food(x, y, "leaf"))
-    return food_items
-
-
-def check_collisions(caterpillar, food_items):
-    """Check if caterpillar collides with any food. Returns list of eaten food."""
-    eaten = []
-    caterpillar_rect = caterpillar.get_rect()
-
-    for food in food_items:
-        if caterpillar_rect.colliderect(food.get_rect()):
-            eaten.append(food)
-
-    return eaten
 
 
 def draw_text(screen, text, size, color, x, y, center=True):
@@ -230,10 +127,16 @@ def main():
     show_start_screen(screen, clock)
 
     # Create caterpillar at center of screen
-    caterpillar = Caterpillar(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+    caterpillar = Caterpillar(
+        WINDOW_WIDTH // 2,
+        WINDOW_HEIGHT // 2,
+        CATERPILLAR_SPEED,
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT
+    )
 
     # Spawn initial food
-    food_items = spawn_food(5)
+    food_items = spawn_food(5, WINDOW_WIDTH, WINDOW_HEIGHT, "leaf")
     score = 0
 
     # Game loop
@@ -249,9 +152,8 @@ def main():
             food_items.remove(food)
             score += 1
             # Spawn new food to replace eaten one
-            new_x = random.randint(0, WINDOW_WIDTH - FOOD_SIZE[0])
-            new_y = random.randint(0, WINDOW_HEIGHT - FOOD_SIZE[1])
-            food_items.append(Food(new_x, new_y, "leaf"))
+            new_food = spawn_food(1, WINDOW_WIDTH, WINDOW_HEIGHT, "leaf")
+            food_items.extend(new_food)
 
         draw_screen(screen, caterpillar, food_items)
 
