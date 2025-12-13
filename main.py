@@ -1,6 +1,6 @@
 import pygame
 import sys
-from model import Caterpillar, spawn_food, check_collisions
+from model import Caterpillar, spawn_food, check_collisions, LEVELS
 
 # Window dimensions
 WINDOW_WIDTH = 800
@@ -119,6 +119,53 @@ def show_start_screen(screen, clock):
         clock.tick(FPS)
 
 
+def show_level_complete_screen(screen, clock, level_num):
+    """Display level complete screen and wait for any key."""
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                else:
+                    # Any other key proceeds to next level
+                    waiting = False
+
+        # Draw level complete screen
+        screen.fill(DARK_GREEN)
+
+        # Congratulations message
+        draw_text(screen, f"Level {level_num} Complete!", 64, LIGHT_YELLOW,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 3)
+
+        draw_text(screen, "Great job munching!", 42, WHITE,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+
+        # Check if there's a next level
+        if level_num + 1 in LEVELS:
+            next_level = LEVELS[level_num + 1]
+            draw_text(screen, f"Next: {next_level['name']}", 36, WHITE,
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 60)
+            draw_text(screen, next_level['message'], 32, LIGHT_YELLOW,
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 100)
+
+            draw_text(screen, "Press any key to continue", 38, WHITE,
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT * 2 // 3 + 50)
+        else:
+            # Game complete!
+            draw_text(screen, "You've completed all levels!", 42, LIGHT_YELLOW,
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 60)
+            draw_text(screen, "Press any key to exit", 38, WHITE,
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT * 2 // 3 + 50)
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def main():
     """Main game loop."""
     screen, clock = initialize_game()
@@ -126,42 +173,83 @@ def main():
     # Show start screen
     show_start_screen(screen, clock)
 
-    # Create caterpillar at center of screen
-    caterpillar = Caterpillar(
-        WINDOW_WIDTH // 2,
-        WINDOW_HEIGHT // 2,
-        CATERPILLAR_SPEED,
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT
-    )
-
-    # Spawn initial food
-    food_items = spawn_food(5, WINDOW_WIDTH, WINDOW_HEIGHT, "leaf")
+    # Game state
+    current_level = 1
     score = 0
 
-    # Game loop
+    # Game loop - continues across levels
     running = True
-    while running:
-        running = handle_events()
+    while running and current_level in LEVELS:
+        # Get current level configuration
+        level_config = LEVELS[current_level]
 
-        caterpillar.handle_movement()
+        # Create caterpillar at center of screen
+        caterpillar = Caterpillar(
+            WINDOW_WIDTH // 2,
+            WINDOW_HEIGHT // 2,
+            CATERPILLAR_SPEED,
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT
+        )
 
-        # Check for collisions with food
-        eaten = check_collisions(caterpillar, food_items)
-        for food in eaten:
-            food_items.remove(food)
-            score += 1
-            # Spawn new food to replace eaten one
-            new_food = spawn_food(1, WINDOW_WIDTH, WINDOW_HEIGHT, "leaf")
-            food_items.extend(new_food)
+        # Spawn food for this level
+        food_items = spawn_food(
+            level_config["num_food"],
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT,
+            level_config["food_types"][0]  # Use first food type for now
+        )
 
-        draw_screen(screen, caterpillar, food_items)
+        # Reset score for this level
+        level_score = 0
 
-        # Draw score
-        draw_text(screen, f"Score: {score}", 36, WHITE, 70, 30, center=False)
-        pygame.display.flip()
+        # Level loop
+        level_running = True
+        while level_running and running:
+            running = handle_events()
 
-        clock.tick(FPS)
+            caterpillar.handle_movement()
+
+            # Check for collisions with food
+            eaten = check_collisions(caterpillar, food_items)
+            for food in eaten:
+                food_items.remove(food)
+                level_score += 1
+                score += 1  # Total score across all levels
+
+                # Spawn new food to replace eaten one
+                new_food = spawn_food(
+                    1,
+                    WINDOW_WIDTH,
+                    WINDOW_HEIGHT,
+                    level_config["food_types"][0]
+                )
+                food_items.extend(new_food)
+
+            # Check if level goal is reached
+            if level_score >= level_config["goal"]:
+                level_running = False  # Exit level loop
+                show_level_complete_screen(screen, clock, current_level)
+                current_level += 1  # Move to next level
+
+            # Draw everything
+            draw_screen(screen, caterpillar, food_items)
+
+            # Draw level info and score
+            draw_text(screen, f"Level {current_level}: {level_config['name']}", 32, WHITE,
+                      WINDOW_WIDTH // 2, 20, center=True)
+            draw_text(screen, f"Goal: {level_score}/{level_config['goal']}", 28, WHITE,
+                      70, 50, center=False)
+            draw_text(screen, f"Total Score: {score}", 28, WHITE,
+                      70, 80, center=False)
+
+            pygame.display.flip()
+            clock.tick(FPS)
+
+    # Game completed or quit
+    if current_level not in LEVELS:
+        # All levels completed - show final screen
+        show_level_complete_screen(screen, clock, current_level - 1)
 
     pygame.quit()
     sys.exit()

@@ -6,6 +6,31 @@ import random
 CATERPILLAR_SIZE = (60, 60)
 FOOD_SIZE = (40, 40)
 
+# Level configurations
+LEVELS = {
+    1: {
+        "name": "Learning to Munch",
+        "food_types": ["leaf"],
+        "num_food": 5,
+        "goal": 10,
+        "message": "Eat 10 leaves to grow!"
+    },
+    2: {
+        "name": "Growing Bigger",
+        "food_types": ["leaf"],
+        "num_food": 7,
+        "goal": 15,
+        "message": "Eat 15 leaves to continue growing!"
+    },
+    3: {
+        "name": "Almost There",
+        "food_types": ["leaf"],
+        "num_food": 10,
+        "goal": 20,
+        "message": "Eat 20 leaves to transform!"
+    }
+}
+
 
 class Caterpillar:
     """Represents the player's caterpillar."""
