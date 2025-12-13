@@ -24,15 +24,48 @@ def initialize_game():
     return screen, clock
 
 
-def load_caterpillar_image():
-    """Load and scale the caterpillar image."""
-    try:
-        image = pygame.image.load("images/caterpillar/caterpillar1.png")
-        image = pygame.transform.scale(image, CATERPILLAR_SIZE)
-        return image
-    except pygame.error as e:
-        print(f"Error loading caterpillar image: {e}")
-        sys.exit()
+class Caterpillar:
+    """Represents the player's caterpillar."""
+
+    def __init__(self, x, y):
+        """Initialize the caterpillar at the given position."""
+        self.x = x
+        self.y = y
+        self.speed = CATERPILLAR_SPEED
+        self.image = self.load_image()
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
+
+    def load_image(self):
+        """Load and scale the caterpillar image."""
+        try:
+            image = pygame.image.load("images/caterpillar/caterpillar1.png")
+            image = pygame.transform.scale(image, CATERPILLAR_SIZE)
+            return image
+        except pygame.error as e:
+            print(f"Error loading caterpillar image: {e}")
+            sys.exit()
+
+    def handle_movement(self):
+        """Update position based on key presses."""
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_LEFT]:
+            self.x -= self.speed
+        if keys[pygame.K_RIGHT]:
+            self.x += self.speed
+        if keys[pygame.K_UP]:
+            self.y -= self.speed
+        if keys[pygame.K_DOWN]:
+            self.y += self.speed
+
+        # Keep caterpillar within screen bounds
+        self.x = max(0, min(self.x, WINDOW_WIDTH - self.width))
+        self.y = max(0, min(self.y, WINDOW_HEIGHT - self.height))
+
+    def draw(self, screen):
+        """Draw the caterpillar on the screen."""
+        screen.blit(self.image, (self.x, self.y))
 
 
 def handle_events():
@@ -63,35 +96,28 @@ def handle_movement(x, y, image_width, image_height):
     return x, y
 
 
-def draw_screen(screen, caterpillar_image, x, y):
+def draw_screen(screen, caterpillar):
     """Draw all game elements to the screen."""
     screen.fill(GREEN)
-    screen.blit(caterpillar_image, (x, y))
+    caterpillar.draw(screen)
     pygame.display.flip()
 
 
 def main():
     """Main game loop."""
     screen, clock = initialize_game()
-    caterpillar_image = load_caterpillar_image()
 
-    # Caterpillar starting position
-    caterpillar_x = WINDOW_WIDTH // 2
-    caterpillar_y = WINDOW_HEIGHT // 2
+    # Create caterpillar at center of screen
+    caterpillar = Caterpillar(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
 
     # Game loop
     running = True
     while running:
         running = handle_events()
 
-        caterpillar_x, caterpillar_y = handle_movement(
-            caterpillar_x,
-            caterpillar_y,
-            caterpillar_image.get_width(),
-            caterpillar_image.get_height()
-        )
+        caterpillar.handle_movement()
 
-        draw_screen(screen, caterpillar_image, caterpillar_x, caterpillar_y)
+        draw_screen(screen, caterpillar)
 
         clock.tick(FPS)
 
