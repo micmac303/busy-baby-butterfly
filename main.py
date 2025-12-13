@@ -8,6 +8,8 @@ WINDOW_HEIGHT = 600
 # Colors
 WHITE = (255, 255, 255)
 GREEN = (34, 139, 34)
+DARK_GREEN = (20, 80, 20)
+LIGHT_YELLOW = (255, 255, 200)
 
 # Game settings
 FPS = 60
@@ -73,6 +75,9 @@ def handle_events():
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                return False
     return True
 
 
@@ -103,9 +108,62 @@ def draw_screen(screen, caterpillar):
     pygame.display.flip()
 
 
+def draw_text(screen, text, size, color, x, y, center=True):
+    """Draw text on the screen."""
+    font = pygame.font.Font(None, size)
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect()
+    if center:
+        text_rect.center = (x, y)
+    else:
+        text_rect.topleft = (x, y)
+    screen.blit(text_surface, text_rect)
+
+
+def show_start_screen(screen, clock):
+    """Display the start screen and wait for Enter key."""
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting = False
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
+        # Draw start screen
+        screen.fill(DARK_GREEN)
+
+        # Title
+        draw_text(screen, "The Busy Baby Butterfly!", 72, LIGHT_YELLOW,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 3)
+
+        # Instructions
+        draw_text(screen, "Use ARROW KEYS to move", 36, WHITE,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+        draw_text(screen, "Eat to grow and become a butterfly!", 36, WHITE,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 50)
+
+        # Start prompt
+        draw_text(screen, "Press ENTER to start", 42, LIGHT_YELLOW,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT * 2 // 3 + 50)
+        draw_text(screen, "Press ESC to quit", 28, WHITE,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT * 2 // 3 + 100)
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def main():
     """Main game loop."""
     screen, clock = initialize_game()
+
+    # Show start screen
+    show_start_screen(screen, clock)
 
     # Create caterpillar at center of screen
     caterpillar = Caterpillar(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
