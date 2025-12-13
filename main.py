@@ -20,6 +20,20 @@ pygame.display.set_caption("The Busy Baby Butterfly")
 clock = pygame.time.Clock()
 FPS = 60
 
+# Load caterpillar image
+try:
+    caterpillar_image = pygame.image.load("images/caterpillar/caterpillar1.png")
+    # Scale image if needed (adjust size as you prefer)
+    caterpillar_image = pygame.transform.scale(caterpillar_image, (60, 60))
+except pygame.error as e:
+    print(f"Error loading caterpillar image: {e}")
+    sys.exit()
+
+# Caterpillar position and movement speed
+caterpillar_x = WINDOW_WIDTH // 2
+caterpillar_y = WINDOW_HEIGHT // 2
+caterpillar_speed = 5
+
 # Game loop
 running = True
 while running:
@@ -28,8 +42,26 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    # Get key states for movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        caterpillar_x -= caterpillar_speed
+    if keys[pygame.K_RIGHT]:
+        caterpillar_x += caterpillar_speed
+    if keys[pygame.K_UP]:
+        caterpillar_y -= caterpillar_speed
+    if keys[pygame.K_DOWN]:
+        caterpillar_y += caterpillar_speed
+
+    # Keep caterpillar within screen bounds
+    caterpillar_x = max(0, min(caterpillar_x, WINDOW_WIDTH - caterpillar_image.get_width()))
+    caterpillar_y = max(0, min(caterpillar_y, WINDOW_HEIGHT - caterpillar_image.get_height()))
+
     # Fill the screen with a color
     screen.fill(GREEN)
+
+    # Draw the caterpillar
+    screen.blit(caterpillar_image, (caterpillar_x, caterpillar_y))
 
     # Update the display
     pygame.display.flip()
