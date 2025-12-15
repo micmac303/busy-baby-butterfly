@@ -16,11 +16,11 @@ LEVELS = {
         "message": "Eat 10 leaves to grow!"
     },
     2: {
-        "name": "Growing Bigger",
-        "food_types": ["leaf"],
+        "name": "Apple Orchard",
+        "food_types": ["apple"],
         "num_food": 7,
         "goal": 15,
-        "message": "Eat 15 leaves to continue growing!"
+        "message": "Eat leaves and apples to continue growing!"
     },
     3: {
         "name": "Almost There",
