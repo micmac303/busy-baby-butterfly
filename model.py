@@ -71,13 +71,14 @@ LEVELS = {
 class Caterpillar:
     """Represents the player's caterpillar."""
 
-    def __init__(self, x, y, speed, window_width, window_height):
+    def __init__(self, x, y, speed, window_width, window_height, size=CATERPILLAR_SIZE):
         """Initialize the caterpillar at the given position."""
         self.x = x
         self.y = y
         self.speed = speed
         self.window_width = window_width
         self.window_height = window_height
+        self.size = size
         self.image = self.load_image()
         self.width = self.image.get_width()
         self.height = self.image.get_height()
@@ -86,7 +87,7 @@ class Caterpillar:
         """Load and scale the caterpillar image."""
         try:
             image = pygame.image.load("images/caterpillar/caterpillar1.png")
-            image = pygame.transform.scale(image, CATERPILLAR_SIZE)
+            image = pygame.transform.scale(image, self.size)
             return image
         except pygame.error as e:
             print(f"Error loading caterpillar image: {e}")
@@ -183,3 +184,13 @@ def check_collisions(caterpillar, food_items):
             eaten.append(food)
 
     return eaten
+
+
+def get_caterpillar_size(level_num):
+    """Return the caterpillar size for a given level."""
+    # Progressive growth from Monday (level 1) to Sunday (level 7)
+    # Start: 64x64, End: 110x110 (big and fat!)
+    base_size = 64
+    growth_per_level = 8  # Grows 8 pixels per level
+    size = base_size + (level_num - 1) * growth_per_level
+    return (size, size)

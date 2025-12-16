@@ -1,6 +1,6 @@
 import pygame
 import sys
-from model import Caterpillar, spawn_food, check_collisions, LEVELS
+from model import Caterpillar, spawn_food, check_collisions, LEVELS, get_caterpillar_size
 
 # Window dimensions
 WINDOW_WIDTH = 800
@@ -282,13 +282,17 @@ def main():
         # Show story text before level starts
         show_level_start_screen(screen, clock, level_config)
 
+        # Get caterpillar size for this level (grows each level!)
+        caterpillar_size = get_caterpillar_size(current_level)
+
         # Create caterpillar at center of screen
         caterpillar = Caterpillar(
             WINDOW_WIDTH // 2,
             WINDOW_HEIGHT // 2,
             CATERPILLAR_SPEED,
             WINDOW_WIDTH,
-            WINDOW_HEIGHT
+            WINDOW_HEIGHT,
+            caterpillar_size
         )
 
         # Spawn food for this level
