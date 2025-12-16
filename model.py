@@ -6,28 +6,64 @@ import random
 CATERPILLAR_SIZE = (60, 60)
 FOOD_SIZE = (40, 40)
 
-# Level configurations
+# Level configurations - Following "The Very Hungry Caterpillar" story
 LEVELS = {
     1: {
-        "name": "Learning to Munch",
-        "food_types": ["leaf"],
-        "num_food": 5,
-        "goal": 10,
-        "message": "Eat 10 leaves to grow!"
+        "name": "Monday",
+        "story_text": "On Monday, he ate through one apple.",
+        "food_types": ["apple"],
+        "num_food": 1,
+        "goal": 1,
+        "message": "But he was still hungry."
     },
     2: {
-        "name": "Apple Orchard",
-        "food_types": ["apple"],
-        "num_food": 7,
-        "goal": 15,
-        "message": "Eat leaves and apples to continue growing!"
+        "name": "Tuesday",
+        "story_text": "On Tuesday, he ate through two pears.",
+        "food_types": ["pear"],
+        "num_food": 2,
+        "goal": 2,
+        "message": "But he was still hungry."
     },
     3: {
-        "name": "Almost There",
-        "food_types": ["leaf"],
+        "name": "Wednesday",
+        "story_text": "On Wednesday, he ate through three plums.",
+        "food_types": ["plum"],
+        "num_food": 3,
+        "goal": 3,
+        "message": "But he was still hungry."
+    },
+    4: {
+        "name": "Thursday",
+        "story_text": "On Thursday, he ate through four strawberries.",
+        "food_types": ["strawberry"],
+        "num_food": 4,
+        "goal": 4,
+        "message": "But he was still hungry."
+    },
+    5: {
+        "name": "Friday",
+        "story_text": "On Friday, he ate through five oranges.",
+        "food_types": ["orange"],
+        "num_food": 5,
+        "goal": 5,
+        "message": "But he was still hungry."
+    },
+    6: {
+        "name": "Saturday",
+        "story_text": "On Saturday, he ate through all sorts of things...",
+        "food_types": ["cake", "icecream", "pickle", "cheese", "salami",
+                       "lollipop", "pie", "sausage", "cupcake", "watermelon"],
         "num_food": 10,
-        "goal": 20,
-        "message": "Eat 20 leaves to transform!"
+        "goal": 10,
+        "message": "That night he had a stomachache!"
+    },
+    7: {
+        "name": "Sunday",
+        "story_text": "On Sunday, he ate through one nice green leaf.",
+        "food_types": ["leaf"],
+        "num_food": 1,
+        "goal": 1,
+        "message": "And he felt much better!"
     }
 }
 
@@ -115,13 +151,25 @@ class Food:
 
 # Game logic functions
 
-def spawn_food(num_items, window_width, window_height, food_type="leaf"):
-    """Spawn food items at random positions."""
+def spawn_food(num_items, window_width, window_height, food_types):
+    """Spawn food items at random positions. Can handle multiple food types."""
     food_items = []
-    for _ in range(num_items):
-        x = random.randint(0, window_width - FOOD_SIZE[0])
-        y = random.randint(0, window_height - FOOD_SIZE[1])
-        food_items.append(Food(x, y, food_type))
+
+    # If we have multiple food types (like Saturday), spawn one of each
+    if isinstance(food_types, list) and len(food_types) > 1:
+        for food_type in food_types:
+            x = random.randint(0, window_width - FOOD_SIZE[0])
+            y = random.randint(0, window_height - FOOD_SIZE[1])
+            food_items.append(Food(x, y, food_type))
+    else:
+        # Single food type, spawn the specified number
+        # Extract the food type string from the list
+        food_type = food_types[0] if isinstance(food_types, list) else food_types
+        for _ in range(num_items):
+            x = random.randint(0, window_width - FOOD_SIZE[0])
+            y = random.randint(0, window_height - FOOD_SIZE[1])
+            food_items.append(Food(x, y, food_type))
+
     return food_items
 
 
