@@ -214,33 +214,54 @@ def show_level_complete_screen(screen, clock, level_num, level_config):
 
 def show_butterfly_ending(screen, clock):
     """Show the final butterfly transformation."""
+    # Load images
+    try:
+        cocoon_img = pygame.image.load("images/caterpillar/cocoon.png")
+        cocoon_img = pygame.transform.scale(cocoon_img, (180, 180))
+        butterfly_img = pygame.image.load("images/caterpillar/butterfly.png")
+        butterfly_img = pygame.transform.scale(butterfly_img, (250, 250))
+    except pygame.error as e:
+        print(f"Error loading transformation images: {e}")
+        # Fallback to emojis if images not found
+        cocoon_img = None
+        butterfly_img = None
+
     # Cocoon phase
     waiting = True
     cocoon_time = pygame.time.get_ticks()
+    cocoon_duration = 3000  # 3 seconds
 
-    while waiting and pygame.time.get_ticks() - cocoon_time < 3000:
+    while waiting and pygame.time.get_ticks() - cocoon_time < cocoon_duration:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
         screen.fill(DARK_GREEN)
-        draw_text(screen, "Building a cocoon...", 48, WHITE,
-                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50)
-        draw_text(screen, "Resting for two weeks...", 36, LIGHT_YELLOW,
-                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20)
 
-        # Simple animation - pulsing text
-        pulse = abs((pygame.time.get_ticks() % 1000) - 500) / 500
-        size = int(32 + pulse * 8)
-        draw_text(screen, "💤", size, WHITE,
-                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 80)
+        # Draw cocoon
+        if cocoon_img:
+            cocoon_rect = cocoon_img.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 30))
+            screen.blit(cocoon_img, cocoon_rect)
+
+        draw_text(screen, "Building a cocoon...", 48, WHITE,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 150)
+        draw_text(screen, "Resting for two weeks...", 36, LIGHT_YELLOW,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 130)
+
+        # Simple animation - pulsing dots
+        dots = "." * ((pygame.time.get_ticks() // 500) % 4)
+        draw_text(screen, f"zzz{dots}", 32, WHITE,
+                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 170)
 
         pygame.display.flip()
         clock.tick(FPS)
 
-    # Butterfly emergence
+    # Butterfly emergence - with fade in effect
     waiting = True
+    emergence_time = pygame.time.get_ticks()
+    fade_duration = 1000  # 1 second fade
+
     while waiting:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -249,14 +270,36 @@ def show_butterfly_ending(screen, clock):
             if event.type == pygame.KEYDOWN:
                 waiting = False
 
-        screen.fill((135, 206, 250))  # Sky blue background
-        draw_text(screen, "🦋", 120, WHITE, WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 80)
-        draw_text(screen, "He was a beautiful butterfly!", 52, (255, 215, 0),
-                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 60)
-        draw_text(screen, "The End", 42, WHITE,
-                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 120)
-        draw_text(screen, "Press any key to exit", 28, WHITE,
-                  WINDOW_WIDTH // 2, WINDOW_HEIGHT * 3 // 4)
+        # Calculate fade alpha (0 to 255)
+        elapsed = pygame.time.get_ticks() - emergence_time
+        alpha = min(255, int((elapsed / fade_duration) * 255))
+
+        # Sky blue background
+        screen.fill((135, 206, 250))
+
+        # Draw butterfly with fade effect
+        if butterfly_img and elapsed < fade_duration:
+            # Create a copy with alpha for fade effect
+            faded_butterfly = butterfly_img.copy()
+            faded_butterfly.set_alpha(alpha)
+            butterfly_rect = faded_butterfly.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50))
+            screen.blit(faded_butterfly, butterfly_rect)
+        elif butterfly_img:
+            # Fully visible
+            butterfly_rect = butterfly_img.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50))
+            screen.blit(butterfly_img, butterfly_rect)
+        else:
+            # Fallback emoji
+            draw_text(screen, "🦋", 120, WHITE, WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 80)
+
+        # Text appears after fade
+        if elapsed > fade_duration:
+            draw_text(screen, "He was a beautiful butterfly!", 52, (255, 215, 0),
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 140)
+            draw_text(screen, "The End", 42, WHITE,
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 200)
+            draw_text(screen, "Press any key to exit", 28, (200, 200, 200),
+                      WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 250)
 
         pygame.display.flip()
         clock.tick(FPS)
